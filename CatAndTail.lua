@@ -1,23 +1,35 @@
+getgenv = getgenv or function() return _G end
+
+if getgenv().LoadedCatScript then
+	if typeof(getgenv().LoadedCatScript) == "Instance" then
+		getgenv().LoadedCatScript:Disconnect()
+	elseif type(getgenv().LoadedCatScript) == "table" and getgenv().LoadedCatScript.Disconnect then
+		getgenv().LoadedCatScript:Disconnect()
+	end
+end
+
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
+
+local connections = {}
 
 local function setupEars(character)
 	local earsAccessory = character:WaitForChild("Accessory (Webcore Cursor Cat Ears (White))", 15)
 	if not earsAccessory then
 		return
 	end
-
+	
 	local handle = earsAccessory:WaitForChild("Handle", 5)
 	if not handle then
 		return
 	end
-
+	
 	local head = character:WaitForChild("Head", 5)
 	if not head then
 		return
 	end
-
+	
 	local weld = handle:FindFirstChildOfClass("Weld")
 	if not weld then
 		for _, child in ipairs(handle:GetChildren()) do
@@ -33,7 +45,7 @@ local function setupEars(character)
 	end
 
 	print("i love cat - Min")
-
+	
 	local originalC0 = weld.C0
 	local rot1 = originalC0 * CFrame.Angles(0, 0, math.rad(4))
 	local rot2 = originalC0 * CFrame.Angles(0, 0, math.rad(-4))
@@ -49,7 +61,7 @@ local function setupEars(character)
 			local tween1 = TweenService:Create(weld, tweenInfo, {C0 = rot1})
 			tween1:Play()
 			tween1.Completed:Wait()
-
+			
 			local tween2 = TweenService:Create(weld, tweenInfo, {C0 = rot2})
 			tween2:Play()
 			tween2.Completed:Wait()
@@ -62,17 +74,17 @@ local function setupTail(character)
 	if not tailAccessory then
 		return
 	end
-
+	
 	local handle = tailAccessory:WaitForChild("Handle", 5)
 	if not handle then
 		return
 	end
-
+	
 	local rootPart = character:FindFirstChild("Torso") or character:FindFirstChild("LowerTorso") or character:WaitForChild("HumanoidRootPart", 5)
 	if not rootPart then
 		return
 	end
-
+	
 	local weld = handle:FindFirstChildOfClass("Weld")
 	if not weld then
 		for _, child in ipairs(handle:GetChildren()) do
@@ -88,7 +100,7 @@ local function setupTail(character)
 	end
 
 	task.wait(0.25)
-
+	
 	local originalC0 = weld.C0
 	local rot1 = originalC0 * CFrame.Angles(math.rad(4), 0, 0)
 	local rot2 = originalC0 * CFrame.Angles(math.rad(-4), 0, 0)
@@ -104,7 +116,7 @@ local function setupTail(character)
 			local tween1 = TweenService:Create(weld, tweenInfo, {C0 = rot1})
 			tween1:Play()
 			tween1.Completed:Wait()
-
+			
 			local tween2 = TweenService:Create(weld, tweenInfo, {C0 = rot2})
 			tween2:Play()
 			tween2.Completed:Wait()
@@ -117,8 +129,17 @@ local function onCharacterAdded(character)
 	setupTail(character)
 end
 
-player.CharacterAdded:Connect(onCharacterAdded)
+local charConn = player.CharacterAdded:Connect(onCharacterAdded)
+table.insert(connections, charConn)
 
 if player.Character then
 	onCharacterAdded(player.Character)
 end
+
+getgenv().LoadedCatScript = {
+	Disconnect = function()
+		for _, conn in ipairs(connections) do
+			conn:Disconnect()
+		end
+	end
+}
